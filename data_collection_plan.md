@@ -1,4 +1,4 @@
-## Phase 1, Task 1 — updated source list:
+## Phase 1, Task 1 — updated source list: (DONE)
 
 base_url = https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/refs/heads/master/data
 
@@ -18,6 +18,7 @@ Historical seasons sources:
 ## Phase 2 — Current season (2026/27) data acquisition via FPL API (revised)
 ### 2. Task: Refresh bootstrap-static + fixtures caches to current season state.
 - Description: Run python root/src/fetch_data.py (or targeted fetches) to update bootstrap_static_latest.json / fixtures_latest.json and timestamped variants; confirm the current gameweek (late Oct 2026 → likely GW5/GW6).
+- Current-season fixtures are handled via the FPL API `/fixtures` endpoint and cached through fetch_data.py (`fixtures_latest.json` / `fixtures_<date>.json`); historical-season fixtures come from the GitHub repo (`root/data/<season>/fixtures.csv`) and were acquired separately.
 - Affected files: root/src/fetch_data.py, root/data/bootstrap_static_latest.json, root/data/fixtures_latest.json.
 - Dependencies: Task 1. Effort: S (15 mins). Verification: Bootstrap shows current GW; fixtures include upcoming FDR.
 ### 3. Task: Add and use the per-GW live endpoint for actuals.
@@ -28,19 +29,19 @@ Historical seasons sources:
 - Description: Use /api/element-summary/{EID}/ (via existing fetch_player_history) for the shortlist of players of interest → prior-GW history, remaining fixtures; feeds form, minutes, avg_fdr_next5 for the baseline.
 - Affected files: root/src/fetch_data.py, root/data/ (per-player cached JSON).
 - Dependencies: Task 2. Effort: M (1 hr). Verification: Per-player summary returns history events + remaining fixtures.
-## Phase 3 — Historical seasons acquisition (confirmed sound, unchanged)
+## Phase 3 — Historical seasons acquisition (DONE)
 ### 5. Task: Acquire 2025/26 training set from GitHub repo.
-- What: cleaned_players.csv, gws/gw1–38.csv (or merged_gw.csv), per-player history.csv.
-- Affected files: data/2025-26/... (GitHub).
+- What: Use merged_gw.csv (not gw1–38) — source: data/2025-26/gws/merged_gw.csv; acquired at root/data/2025-26/gws/merged_gw.csv. cleaned_players.csv / per-player history were superseded per the finalized source list.
+- Affected files: data/2025-26/gws/merged_gw.csv (GitHub).
 - Dependencies: Task 1. Effort: S (30 mins). Verification: GWs 1–38 present; target columns present.
 ### 6. Task: Acquire historical seasons via cleaned_merged_seasons.csv.
-- What: Single long-format source for seasons ≤ ~2024/25.
+- What: Single long-format source for seasons ≤ ~2024/25; acquired at root/data/cleaned_merged_seasons.csv.
 - Affected files: data/cleaned_merged_seasons.csv.
 - Dependencies: Task 5. Effort: M (1–2 hrs). Verification: Season coverage ≥ 10 historical seasons; defcon caveats flagged.
-## Phase 4 — Supporting data
+## Phase 4 — Supporting data (DONE)
 ### 7. Task: Acquire fixtures/FDR.
-- Description: Prefer FPL API fixtures/ for current season (already cached); use GitHub data/<season>/fixtures.csv for historical seasons.
-- Affected files: root/data/fixtures_latest.json, data/<season>/fixtures.csv.
+- Description: Historical fixtures acquired from GitHub (saved under root/data/<season>/fixtures.csv): 2018-19, 2019-20, 2020-21, 2021-22, 2022-23, 2023-24, 2024-25, 2025-26 (all valid, ~380 rows). 2016-17 and 2017-18 fixtures could NOT be acquired (source HTTP 404). Current-season fixtures deferred to Phase 2 (FPL API).
+- Affected files: root/data/fixtures_latest.json, root/data/<season>/fixtures.csv.
 - Dependencies: Phase 2/3. Effort: S (15 mins). Verification: FDR columns present.
 ## Phase 5 — Ingestion code update
 ### 8. Task: Extend fetch_data.py with fetch_event_live(gw) and persistence for element summaries; keep bootstrap/fixtures flow.
