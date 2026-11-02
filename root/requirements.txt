@@ -1,3 +1,0 @@
-# Required package installations
-requests
-pandas
