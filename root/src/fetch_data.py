@@ -9,7 +9,6 @@ Usage: python fetch_data.py
 import json
 import requests
 from pathlib import Path
-from datetime import datetime, timezone
 
 BASE_URL = "https://fantasy.premierleague.com/api"
 DATA_DIR = Path(__file__).parents[1] / "data"
@@ -51,6 +50,17 @@ def fetch_player_history(player_id: int) -> dict:
     return response.json()
 
 
+def fetch_event_live(gw: int) -> dict:
+    """
+    Live (real-time) data for a given gameweek, e.g. actuals for gameweeks
+    that have been played.
+    """
+    url = f"{BASE_URL}/event/{gw}/live/"
+    response = requests.get(url, timeout=15)
+    response.raise_for_status()
+    return response.json()
+
+
 def save_json(data, filename: str) -> Path:
     """Save data to data/filename, creating the folder if needed."""
     DATA_DIR.mkdir(exist_ok=True)
@@ -62,22 +72,21 @@ def save_json(data, filename: str) -> Path:
 
 
 def main():
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
     print("Fetching bootstrap-static (players, teams, gameweeks)...")
     bootstrap = fetch_bootstrap_static()
-    path = save_json(bootstrap, f"bootstrap_static_{timestamp}.json")
+    path = save_json(bootstrap, "bootstrap_static_latest.json")
     print(f"  Saved {len(bootstrap['elements'])} players -> {path}")
 
     print("Fetching fixtures...")
     fixtures = fetch_fixtures()
-    path = save_json(fixtures, f"fixtures_{timestamp}.json")
+    path = save_json(fixtures, "fixtures_latest.json")
     print(f"  Saved {len(fixtures)} fixtures -> {path}")
 
-    # Also save a "latest" copy of each, unversioned, so downstream
-    # scripts/notebooks always have a stable filename to load from.
-    save_json(bootstrap, "bootstrap_static_latest.json")
-    save_json(fixtures, "fixtures_latest.json")
+    print("Fetching live event data for played gameweeks...")
+    for gw in (4, 5, 6, 7, 8):
+        event_live = fetch_event_live(gw)
+        path = save_json(event_live, f"event_live_GW{gw}.json")
+        print(f"  Saved live data for GW{gw} -> {path}")
 
     print("\nDone. Player history for individual players can be pulled "
           "on demand with fetch_player_history(player_id) once you know "
